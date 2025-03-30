@@ -1,6 +1,8 @@
 package com.medom5.springboot.person;
 
 import com.medom5.springboot.SortingOrder;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,19 +32,19 @@ public class PersonController {
 
     @GetMapping("{id}")
     public ResponseEntity<Optional<Person>> getPersonById(
-            @PathVariable("id") Integer id
+            @Valid @Positive @PathVariable("id") Integer id
     ) {
         Optional<Person> person = personService.getPersonById(id);
         return ResponseEntity.ok().body(person);
     }
 
     @DeleteMapping("{id}")
-    public void deletePersonById(@PathVariable("id") Integer id) {
+    public void deletePersonById(@Valid @Positive @PathVariable("id") Integer id) {
         personService.deletePersonById(id);
     }
 
     @PostMapping
-    public void addPerson(@RequestBody Person person) {
+    public void addPerson(@Valid @RequestBody NewPersonRequest person) {
         personService.addPerson(person);
     }
 

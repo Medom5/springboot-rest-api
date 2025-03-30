@@ -1,4 +1,5 @@
 package com.medom5.springboot.person;
+
 import com.medom5.springboot.SortingOrder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class PersonService {
     }
 
     public List<Person> getPeople(
-           SortingOrder sort
+            SortingOrder sort
     ) {
         if (sort == SortingOrder.ASC) {
             return personRepository.getPeople().stream()
@@ -42,7 +43,7 @@ public class PersonService {
                 .removeIf(person -> person.id().equals(id));
     }
 
-    public void addPerson(Person person) {
+    public void addPerson(NewPersonRequest person) {
         personRepository.getPeople().add(
                 new Person(
                         personRepository.getIdCounter().incrementAndGet(),
@@ -61,28 +62,22 @@ public class PersonService {
                 .ifPresent(p -> {
                     var index = personRepository.getPeople().indexOf(p);
 
-                    if (request.name() != null &&
-                            !request.name().isEmpty() &&
-                            !request.name().equals(p.name())) {
-                        Person person = new Person(
-                                p.id(),
-                                request.name(),
-                                p.age(),
-                                p.gender()
-
-                        );
-                        personRepository.getPeople().set(index, person);
+                    Person updatedPerson = new Person(
+                            p.id(),
+                            p.name(),
+                            p.age(),
+                            p.gender()
+                    );
+                    if (request.name() != null && !request.name().isEmpty() && !request.name().equals(p.name())) {
+                        updatedPerson = new Person(updatedPerson.id(), request.name(), updatedPerson.age(), updatedPerson.gender());
                     }
-                    if (request.age() != null
-                            && !request.age().equals(p.age())) {
-                        Person person = new Person(
-                                p.id(),
-                                p.name(),
-                                request.age(),
-                                p.gender()
 
-                        );
-                        personRepository.getPeople().set(index, person);
+                    if (request.age() != null && !request.age().equals(p.age())) {
+                        updatedPerson = new Person(updatedPerson.id(), updatedPerson.name(), request.age(), updatedPerson.gender());
+                    }
+
+                    if (!updatedPerson.equals(p)) {
+                        personRepository.getPeople().set(index, updatedPerson);
                     }
                 });
     }
