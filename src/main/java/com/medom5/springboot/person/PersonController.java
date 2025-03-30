@@ -1,6 +1,7 @@
 package com.medom5.springboot.person;
 
 import com.medom5.springboot.SortingOrder;
+import com.medom5.springboot.exception.InvalidSortingOrderException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,22 @@ public class PersonController {
     }
 
     @GetMapping
-    public List<Person> getPeople(
+    public ResponseEntity<List<Person>> getPeople(
             @RequestParam(
                     value = "sort",
                     required = false,
                     defaultValue = "ASC"
-            ) SortingOrder sort) {
-        return personService.getPeople(sort);
+            ) String sort) {
+        try {
+            SortingOrder sortingOrder = SortingOrder.valueOf(sort.toUpperCase());
+
+            List<Person> people = personService.getPeople(sortingOrder);
+
+            return ResponseEntity.ok(people);
+        }
+        catch (IllegalArgumentException e) {
+            throw new InvalidSortingOrderException("Invalid sorting order");
+        }
     }
 
 
@@ -50,7 +60,7 @@ public class PersonController {
 
     @PutMapping("{id}")
     public void updatePerson(@PathVariable("id") Integer id,
-                             @RequestBody PersonUpdateRequest request) {
+                             @Valid @RequestBody PersonUpdateRequest request) {
         personService.updatePerson(id, request);
     }
 

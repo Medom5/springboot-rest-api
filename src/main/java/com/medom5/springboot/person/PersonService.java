@@ -3,11 +3,11 @@ package com.medom5.springboot.person;
 import com.medom5.springboot.SortingOrder;
 import com.medom5.springboot.exception.DuplicateResourceException;
 import com.medom5.springboot.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -15,28 +15,24 @@ public class PersonService {
 
     private final PersonRepository personRepository;
 
-    public PersonService(PersonRepository personRepository) {
+    public PersonService(FakePersonRepository fakePersonRepository, PersonRepository personRepository) {
         this.personRepository = personRepository;
     }
 
     public List<Person> getPeople(
             SortingOrder sort
     ) {
-        if (sort == SortingOrder.ASC) {
-            return personRepository.getPeople().stream()
-                    .sorted(Comparator.comparing(Person::id))
-                    .collect(Collectors.toList());
-        }
-        return personRepository.getPeople().stream()
-                .sorted(Comparator.comparing(Person::id).reversed())
-                .collect(Collectors.toList());
+        return personRepository.findAll(
+                Sort.by(
+                        Sort.Direction.valueOf(sort.name()),
+                        "id"
+                )
+        );
     }
 
 
     public Person getPersonById(Integer id) {
-        return personRepository.getPeople().stream()
-                .filter(p -> p.id().equals(id))
-                .findFirst()
+        return personRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Person with id: " + id + " does not exist"));
@@ -44,70 +40,54 @@ public class PersonService {
     }
 
     public void deletePersonById(Integer id) {
-        Person p = personRepository.getPeople().stream()
-                .filter(person -> person.id().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Person with id: " + id + " does not exists"
-                ));
-
-        personRepository.getPeople().remove(p);
+        boolean exists = personRepository.existsById(id);
+        if (!exists) {
+            throw new ResourceNotFoundException("Person with id: " + id + " does not exist");
+        }
+        personRepository.deleteById(id);
     }
 
-    public void addPerson(NewPersonRequest person) {
-        if (person.email() != null && !person.email().isEmpty()) {
-            boolean exists = personRepository.getPeople().stream()
-                    .anyMatch(p -> p.email().equalsIgnoreCase(person.email()));
+    public void addPerson(NewPersonRequest personRequest) {
+        boolean exists = personRepository.existsByEmailIgnoreCase(personRequest.email());
 
-            if (exists) {
-                throw new DuplicateResourceException("Email is taken");
-            }else {
-                personRepository.getPeople().add(
-                        new Person(
-                                personRepository.getIdCounter().incrementAndGet(),
-                                person.name(),
-                                person.age(),
-                                person.gender(),
-                                person.email()
-                        )
-                );
-            }
+        if (exists) {
+            throw new DuplicateResourceException("Email is taken");
         }
+        Person p = new Person(
+                personRequest.name(),
+                personRequest.age(),
+                personRequest.gender(),
+                personRequest.email()
+        );
+        personRepository.save(p);
     }
 
     public void updatePerson(Integer id,
                              PersonUpdateRequest request) {
-        Person p = personRepository.getPeople().stream()
-                .filter(person -> person.id().equals(id))
-                .findFirst()
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Person with id " + id + " does not exists"
-                        ));
+        Person person = personRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(
+                        "Person with id " + id + " does not exists"
+                ));
 
-        var index = personRepository.getPeople().indexOf(p);
+        boolean isUpdated = false;
 
-        Person updatedPerson = new Person(
-                p.id(),
-                p.name(),
-                p.age(),
-                p.gender(),
-                p.email()
-        );
-        if (request.name() != null && !request.name().isEmpty() && !request.name().equals(p.name())) {
-            updatedPerson = new Person(updatedPerson.id(), request.name(), updatedPerson.age(), updatedPerson.gender(), updatedPerson.email());
+        if (!request.name().equals(person.getName())) {
+            person.setName(request.name());
+            isUpdated = true;
         }
 
-        if (request.age() != null && !request.age().equals(p.age())) {
-            updatedPerson = new Person(updatedPerson.id(), updatedPerson.name(), request.age(), updatedPerson.gender(), updatedPerson.email());
+        if (!request.age().equals(person.getAge())) {
+            person.setAge(request.age());
+            isUpdated = true;
         }
 
-        if (request.email() != null && !request.email().equals(p.email())) {
-            updatedPerson = new Person(updatedPerson.id(), updatedPerson.name(), updatedPerson.age(), updatedPerson.gender(), request.email());
+        if (!request.email().equals(person.getEmail())) {
+            person.setEmail(request.email());
+            isUpdated = true;
         }
 
-        if (!updatedPerson.equals(p)) {
-            personRepository.getPeople().set(index, updatedPerson);
+        if (isUpdated) {
+            personRepository.save(person);
         }
 
     }
