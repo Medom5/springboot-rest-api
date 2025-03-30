@@ -1,9 +1,13 @@
-HELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Ignore everything in the target directory
+target/*
 
+# But do not ignore the .jar files in the target directory
+!target/*.jar
+
+# You can also exclude files like Maven wrapper or IDE-specific files if needed
+!.mvn/wrapper/maven-wrapper.jar
+
+### Ignore IDE specific files ###
 ### STS ###
 .apt_generated
 .classpath
