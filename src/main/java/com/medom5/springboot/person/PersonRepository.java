@@ -20,7 +20,8 @@ public class PersonRepository {
                         idCounter.incrementAndGet(),
                         "John",
                         20,
-                        Gender.MALE
+                        Gender.MALE,
+                        "john@jj.cc"
                 )
         );
         people.add(
@@ -28,14 +29,16 @@ public class PersonRepository {
                         idCounter.incrementAndGet(),
                         "Mariam",
                         18,
-                        Gender.FEMALE)
+                        Gender.FEMALE,
+                        "mariam@gmail.com")
         );
         people.add(
                 new Person(
                         idCounter.incrementAndGet(),
                         "Samba",
                         30,
-                        Gender.MALE)
+                        Gender.MALE,
+                        "samba@gmail.com")
         );
     }
 
