@@ -1,6 +1,6 @@
 # Spring Boot REST API
 
-A RESTful API built with Spring Boot that provides CRUD operations for managing person records. This API is deployed and accessible at [https://springboot-rest-api-kfdtkw.fly.dev/](https://springboot-rest-api-kfdtkw.fly.dev/).
+A RESTful API built with Spring Boot that provides CRUD operations for managing person records. This API is deployed and accessible at [https://springboot-rest-api-kfdtkw.fly.dev/api/v1/persons](https://springboot-rest-api-kfdtkw.fly.dev/api/v1/persons).
 
 > **Important Note**: When making your first request to the API, please allow approximately 30 seconds for the fly.io server to spin up. The initial request may time out, but subsequent requests will be much faster once the server is running.
 
